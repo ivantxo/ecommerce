@@ -5,7 +5,7 @@ const ProductPrice = ({
   className,
 }: {
   value: number;
-  className: string;
+  className?: string;
 }) => {
   // Ensure 2 decimal places
   const stringValue = value.toFixed(2);
