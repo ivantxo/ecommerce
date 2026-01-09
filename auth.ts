@@ -41,7 +41,7 @@ export const config = {
           // If password is correct, return user
           if (isMatch) {
             return {
-              id: user.id,
+              id: user.id.toString(),
               name: user.name,
               email: user.email,
               role: user.role,
