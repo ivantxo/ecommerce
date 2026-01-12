@@ -5,10 +5,10 @@ import Menu from "./menu";
 
 const Header = () => {
   return (
-    <header className="w-full border-b">
+    <header className="w-full border">
       <div className="wraper flex-between">
-        <div className="flex-start">
-          <Link href="/" className="flex-start">
+        <div className="flex-start mx-10">
+          <Link href="/" className="flex-start ml-4">
             <Image
               src="/images/logo.svg"
               alt={`${APP_NAME} logo`}
