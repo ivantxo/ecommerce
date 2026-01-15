@@ -82,7 +82,6 @@ model VerificationToken {
   @@id([identifier, token])
 }
 
-
 model Cart {
   id              Int       @id @default(autoincrement())
   userId          Int?      @default(autoincrement())
