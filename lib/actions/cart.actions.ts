@@ -43,7 +43,7 @@ export async function addItemToCart(data: CartItem) {
 
     // Find product in database
     const product = await prisma.product.findFirst({
-      where: { id: Number(item.productId) },
+      where: { id: item.productId },
     });
 
     if (!product) throw new Error("Product not found");
@@ -89,9 +89,7 @@ export async function getMyCart() {
 
   // Get user cart from database
   const cart = await prisma.cart.findFirst({
-    where: userId
-      ? { userId: Number(userId) }
-      : { sessionCartId: sessionCartId },
+    where: userId ? { userId: userId } : { sessionCartId: sessionCartId },
   });
 
   if (!cart) return undefined;
