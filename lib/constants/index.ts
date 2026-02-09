@@ -21,10 +21,9 @@ export const signUpDefaultsValues = {
 };
 
 export const shippingAddressDefaultsValues = {
-  fullName: "John Doe",
-  address: "123 Main St",
-  city: "Anytown",
-  postalCode: "12345",
-  country: "USA",
+  fullName: "",
+  streetAddress: "",
+  city: "",
+  postalCode: "",
+  country: "",
 };
-
