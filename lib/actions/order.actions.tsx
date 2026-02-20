@@ -1,4 +1,4 @@
-'use server';
+"use server";
 
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { convertToPlainObject, formatError } from "../utils";
@@ -24,15 +24,27 @@ export async function createOrder() {
     const user = await getUserById(userId);
 
     if (!cart || cart.items.length === 0) {
-      return { success: false, message: "Your cart is empty", redirectTo: '/cart' };
+      return {
+        success: false,
+        message: "Your cart is empty",
+        redirectTo: "/cart",
+      };
     }
 
     if (!user.address) {
-      return { success: false, message: "No shipping address", redirectTo: '/shipping-address' };
+      return {
+        success: false,
+        message: "No shipping address",
+        redirectTo: "/shipping-address",
+      };
     }
 
     if (!user.paymentMethod) {
-      return { success: false, message: "No payment method", redirectTo: '/payment-method' };
+      return {
+        success: false,
+        message: "No payment method",
+        redirectTo: "/payment-method",
+      };
     }
 
     // Create order object
@@ -54,10 +66,10 @@ export async function createOrder() {
       for (const item of cart.items as CartItem[]) {
         await tx.orderItem.create({
           data: {
-            ...item, 
-            price: item.price, 
-            orderId: insertedOrder.id
-          } 
+            ...item,
+            price: item.price,
+            orderId: insertedOrder.id,
+          },
         });
       }
 
@@ -70,23 +82,23 @@ export async function createOrder() {
           taxPrice: 0,
           shippingPrice: 0,
           itemsPrice: 0,
-        }
+        },
       });
 
-      return insertedOrder.id
+      return insertedOrder.id;
     });
 
     if (!insertedOrderId) throw new Error("Order was not created");
 
-    return { 
-      success: true, 
-      message: "Order created successfully", 
-      redirectTo: `/order/${insertedOrderId}` 
+    return {
+      success: true,
+      message: "Order created successfully",
+      redirectTo: `/order/${insertedOrderId}`,
     };
   } catch (error) {
     if (isRedirectError(error)) throw error;
 
-    return { success: false, message: formatError(error)}
+    return { success: false, message: formatError(error) };
   }
 }
 
@@ -98,7 +110,7 @@ export async function getOrderById(orderId: string) {
     },
     include: {
       orderitems: true,
-      user: { select: { name: true, email: true }},
+      user: { select: { name: true, email: true } },
     },
   });
 
@@ -124,17 +136,17 @@ export async function createPaypalOrder(orderId: string) {
         data: {
           paymentResult: {
             id: paypalOrder.id,
-            email_address: '',
-            status: '',
+            email_address: "",
+            status: "",
             pricePaid: 0,
-          }
-        }
+          },
+        },
       });
 
-      return { 
-        success: true, 
-        message: 'Item order created successfully', 
-        data: paypalOrder.id 
+      return {
+        success: true,
+        message: "Item order created successfully",
+        data: paypalOrder.id,
       };
     } else {
       throw new Error("Order not found");
@@ -147,7 +159,7 @@ export async function createPaypalOrder(orderId: string) {
 // Approve paypal order and update order as paid
 export async function approvePaypalOrder(
   orderId: string,
-  data: { orderID: string }
+  data: { orderID: string },
 ) {
   try {
     // Get order from database
@@ -162,9 +174,9 @@ export async function approvePaypalOrder(
     const captureData = await paypal.capturePayment(data.orderID);
 
     if (
-      !captureData || 
-      captureData.id !== (order.paymentResult as PaymentResult)?.id || 
-      captureData.status !== 'COMPLETED'
+      !captureData ||
+      captureData.id !== (order.paymentResult as PaymentResult)?.id ||
+      captureData.status !== "COMPLETED"
     ) {
       throw new Error("Error in paypal payment");
     }
@@ -176,17 +188,17 @@ export async function approvePaypalOrder(
         id: captureData.id,
         status: captureData.status,
         email_address: captureData.payer.email_address,
-        pricePaid: captureData.purchase_units[0]?.payments?.captures[0]?.amount?.value,
+        pricePaid:
+          captureData.purchase_units[0]?.payments?.captures[0]?.amount?.value,
       },
     });
 
     revalidatePath(`/order/${orderId}`);
 
-    return { 
-      success: true, 
-      message: "Your order has been paid successfully", 
+    return {
+      success: true,
+      message: "Your order has been paid successfully",
     };
-
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -201,52 +213,52 @@ async function updateOrderToPaid({
   paymentResult?: PaymentResult;
 }) {
   // Get order from database
-    const order = await prisma.order.findFirst({
-      where: {
-        id: orderId,
-      },
-      include: {
-        orderitems: true,
-      },
-    });
+  const order = await prisma.order.findFirst({
+    where: {
+      id: orderId,
+    },
+    include: {
+      orderitems: true,
+    },
+  });
 
-    if (!order) throw new Error("Order not found");
+  if (!order) throw new Error("Order not found");
 
-    if (order.isPaid) throw new Error("Order is already paid");
+  if (order.isPaid) throw new Error("Order is already paid");
 
-    // Transaction to update order and account for product stock
-    await prisma.$transaction(async (tx) => {
-      // Iterate over products and update stock
-      for (const item of order.orderitems) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: { increment: -item.qty }}
-        });
-      }
-
-      // Set the order to paid
-      await tx.order.update({
-        where: { id: orderId },
-        data: {
-          isPaid: true,
-          paidAt: new Date(),
-          paymentResult,
-        },
+  // Transaction to update order and account for product stock
+  await prisma.$transaction(async (tx) => {
+    // Iterate over products and update stock
+    for (const item of order.orderitems) {
+      await tx.product.update({
+        where: { id: item.productId },
+        data: { stock: { increment: -item.qty } },
       });
-    });
+    }
 
-    // Get updated order after the transaction
-    const updatedOrder = await prisma.order.findFirst({
-      where: {
-        id: orderId,
-      },
-      include: {
-        orderitems: true,
-        user: {
-          select: { name: true, email: true },
-        },
+    // Set the order to paid
+    await tx.order.update({
+      where: { id: orderId },
+      data: {
+        isPaid: true,
+        paidAt: new Date(),
+        paymentResult,
       },
     });
+  });
 
-    if (!updatedOrder) throw new Error("Order not found after update");
+  // Get updated order after the transaction
+  const updatedOrder = await prisma.order.findFirst({
+    where: {
+      id: orderId,
+    },
+    include: {
+      orderitems: true,
+      user: {
+        select: { name: true, email: true },
+      },
+    },
+  });
+
+  if (!updatedOrder) throw new Error("Order not found after update");
 }
