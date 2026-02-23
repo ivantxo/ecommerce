@@ -37,7 +37,7 @@ export const config = {
         if (user && user.password) {
           const isMatch = compareSync(
             credentials.password as string,
-            user.password
+            user.password,
           );
 
           // If password is correct, return user
@@ -89,7 +89,7 @@ export const config = {
           });
         }
 
-        if (trigger === 'signIn' || trigger === 'signUp') {
+        if (trigger === "signIn" || trigger === "signUp") {
           const cookiesObject = await cookies();
           const sessionCartId = cookiesObject.get("sessionCartId")?.value;
 
@@ -112,6 +112,11 @@ export const config = {
             }
           }
         }
+      }
+
+      // Handle session updates
+      if (session?.user.name && trigger === "update") {
+        token.name = session.user.name;
       }
       return token;
     },
