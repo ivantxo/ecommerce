@@ -23,8 +23,6 @@ const OrdersPage = async (props: {
 
   const orders = await getMyOrders({ page: Number(page) || 1 });
 
-  console.log(orders);
-
   return (
     <div className="space-y-2">
       <h2 className="h2-bold">Orders</h2>
