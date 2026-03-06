@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -8,6 +9,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -15,15 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { updateUser } from "@/lib/actions/users.actions";
+import { USER_ROLES } from "@/lib/constants";
 import { updateUserSchema } from "@/lib/validators";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { ControllerRenderProps, useForm } from "react-hook-form";
-import z from "zod";
-import { USER_ROLES } from "@/lib/constants";
-import { Button } from "@/components/ui/button";
+import { z } from "zod";
 
 const UpdateUserForm = ({
   user,
@@ -38,8 +39,31 @@ const UpdateUserForm = ({
     defaultValues: user,
   });
 
-  const onSubmit = () => {
-    return;
+  const onSubmit = async (values: z.infer<typeof updateUserSchema>) => {
+    try {
+      const res = await updateUser({
+        ...values,
+        id: user.id,
+      });
+
+      if (!res.success) {
+        return toast({
+          variant: "destructive",
+          description: res.message,
+        });
+      }
+
+      toast({
+        description: res.message,
+      });
+      form.reset();
+      router.push("/admin/users");
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        description: (error as Error).message,
+      });
+    }
   };
 
   return (
@@ -132,13 +156,13 @@ const UpdateUserForm = ({
             )}
           />
         </div>
-        <div className="flex-between mt-4">
+        <div className="flex-between mt-6">
           <Button
-            type="button"
+            type="submit"
             className="w-full"
             disabled={form.formState.isSubmitting}
           >
-            {form.formState.isSubmitting ? "Submitting" : "Update User"}
+            {form.formState.isSubmitting ? "Submitting..." : "Update User"}
           </Button>
         </div>
       </form>
