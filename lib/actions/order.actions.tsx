@@ -10,7 +10,6 @@ import { prisma } from "@/db/prisma";
 import { CartItem, PaymentResult } from "@/types";
 import { paypal } from "../paypal";
 import { revalidatePath } from "next/cache";
-import { format } from "path";
 import { PAGE_SIZE } from "../constants";
 import { Prisma } from "@prisma/client";
 
