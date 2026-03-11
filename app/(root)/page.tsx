@@ -5,6 +5,7 @@ import {
 } from "@/lib/actions/products.actions";
 import ProductCarousel from "@/components/shared/product/product-carousel";
 import { Decimal } from "@prisma/client/runtime/library";
+import ViewAllProductsButton from "@/components/view-all-products-button";
 
 const Homepage = async () => {
   const latestProducts = await getLatestProducts();
@@ -22,6 +23,7 @@ const Homepage = async () => {
         <ProductCarousel data={formattedFeaturedProducts} />
       )}
       <ProductList data={latestProducts} title="Newest Arrivals" limit={4} />
+      <ViewAllProductsButton />
     </>
   );
 };
