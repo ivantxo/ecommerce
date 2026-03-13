@@ -1,8 +1,8 @@
 "use server";
+
 import { prisma } from "@/db/prisma";
 import { convertToPlainObject, formatError } from "../utils";
 import { LATEST_PRODUCTS_LIMIT, PAGE_SIZE } from "../constants";
-import { _success } from "zod/v4/core";
 import { revalidatePath } from "next/cache";
 import { insertProductSchema, updateProductSchema } from "../validators";
 import z from "zod";
@@ -99,15 +99,7 @@ export async function getAllProducts({
     take: limit,
   });
 
-  const dataCount = await prisma.product.count({
-    where: {
-      name: {
-        contains: query,
-        mode: "insensitive",
-      },
-      category: category ? category : undefined,
-    },
-  });
+  const dataCount = await prisma.product.count();
 
   return {
     data,
