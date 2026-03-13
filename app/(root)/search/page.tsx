@@ -42,16 +42,17 @@ export async function generateMetadata(props: {
   if (isQuerySet || isCategorySet || isPriceSet || isRatingSet) {
     return {
       title: `
-      Search ${isQuerySet ? q : ''} 
-      ${isCategorySet ? `: Category ${category}` : ''}
-      ${isPriceSet ? `: Price ${price}` : ''}
-      ${isRatingSet ? `: Rating ${rating}` : ''}`,
+      Search ${isQuerySet ? q : ""} 
+      ${isCategorySet ? `: Category ${category}` : ""}
+      ${isPriceSet ? `: Price ${price}` : ""}
+      ${isRatingSet ? `: Rating ${rating}` : ""}`,
     };
   } else {
     return {
-      title: 'Search Products',
+      title: "Search Products",
     };
   }
+}
 
 const SearchPage = async (props: {
   searchParams: Promise<{
