@@ -32,8 +32,9 @@ import { DialogTitle } from "@radix-ui/react-dialog";
 import { SelectContent } from "@radix-ui/react-select";
 import { StarIcon } from "lucide-react";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { SubmitHandler, useForm } from "react-hook-form";
 import z from "zod";
+import { createUpdateReview } from "@/lib/actions/review.actions";
 
 const ReviewForm = ({
   userId,
@@ -42,7 +43,7 @@ const ReviewForm = ({
 }: {
   userId: string;
   productId: string;
-  onReviewSubmitted?: () => void;
+  onReviewSubmitted: () => void;
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -53,12 +54,33 @@ const ReviewForm = ({
     defaultValues: reviewFormDefaultValues,
   });
 
+  // Open form handler
   const handleOpenForm = () => {
+    form.setValue("productId", productId);
+    form.setValue("userId", userId);
     setOpen(true);
   };
 
-  const onSubmit = () => {
-    return;
+  // Submit form handler
+  const onSubmit: SubmitHandler<z.infer<typeof insertReviewSchema>> = async (
+    values,
+  ) => {
+    const res = await createUpdateReview({ ...values, productId });
+
+    if (!res.success) {
+      return toast({
+        variant: "destructive",
+        description: res.message,
+      });
+    }
+
+    setOpen(false);
+
+    onReviewSubmitted();
+
+    toast({
+      description: res.message,
+    });
   };
 
   return (
