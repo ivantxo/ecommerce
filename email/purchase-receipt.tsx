@@ -1,5 +1,6 @@
-import { formatCurrency } from "@/lib/utils";
-import { Order } from "@/types";
+import sampleData from "../db/sample-data";
+import { formatCurrency } from "../lib/utils";
+import { Order } from "../types";
 import {
   Body,
   Column,
@@ -15,9 +16,51 @@ import {
   Text,
 } from "@react-email/components";
 
+PurchaseReceiptEmail.PreviewProps = {
+  order: {
+    id: "mock-order-id-123",
+    userId: "123",
+    user: { name: "Ivan Ramirez", email: "ivan@test.com" },
+    paymentMethod: "Stripe",
+    shippingAddress: {
+      fullName: "Ivan Ramirez",
+      streetAddress: "123 Main st",
+      city: "Brisbane",
+      postalCode: "4500",
+      country: "AU",
+    },
+    createdAt: new Date(),
+    totalPrice: "100",
+    taxPrice: "10",
+    shippingPrice: "10",
+    itemsPrice: "80",
+    orderitems: sampleData.products.map((x) => ({
+      name: x.name,
+      orderId: "123",
+      productId: "123",
+      slug: x.slug,
+      qty: x.stock,
+      image: x.images[0],
+      price: x.price.toString(),
+    })),
+    isDelivered: true,
+    deliveredAt: new Date(),
+    isPaid: true,
+    paidAt: new Date(),
+    paymentResult: {
+      id: "123",
+      status: "succeeded",
+      pricePaid: "100",
+      email_address: "ivan@test.com",
+    },
+  },
+} satisfies OrderInformationProps;
+
 const dateFormatter = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
 
-const PurchaseReceiptEmail = ({ order }: { order: Order }) => {
+type OrderInformationProps = { order: Order };
+
+export default function PurchaseReceiptEmail({ order }: { order: Order }) {
   return (
     <Html>
       <Preview>View order receipt</Preview>
@@ -62,7 +105,7 @@ const PurchaseReceiptEmail = ({ order }: { order: Order }) => {
                       className="rounded"
                       src={
                         item.image.startsWith("/")
-                          ? `${process.env.NEXT_PUBLIC_SERVER_URL}${item.image}`
+                          ? `${process.env.production ? process.env.VERCEL_URL : "http://localhost:3000"}${item.image}`
                           : item.image
                       }
                     />
@@ -94,6 +137,4 @@ const PurchaseReceiptEmail = ({ order }: { order: Order }) => {
       </Tailwind>
     </Html>
   );
-};
-
-export default PurchaseReceiptEmail;
+}
