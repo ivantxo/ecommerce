@@ -1,9 +1,8 @@
 import { Resend } from "resend";
 import { SENDER_EMAIL, APP_NAME } from "@/lib/constants";
-require("dotenv").config();
 import SendEmailVerification from "./new-account-confirmation";
 
-const resend = new Resend(process.env.RESEND_API_KEY as string);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendEmailVerification = async (email: string, code: string) => {
   await resend.emails.send({
