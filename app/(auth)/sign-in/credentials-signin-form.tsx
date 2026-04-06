@@ -18,6 +18,7 @@ const CredentialsSignInForm = () => {
 
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const verified = searchParams.get("verified");
 
   const SignInButton = () => {
     const { pending } = useFormStatus();
@@ -58,6 +59,12 @@ const CredentialsSignInForm = () => {
         <div>
           <SignInButton />
         </div>
+
+        {verified && (
+          <div className="text-center text-green-600">
+            Your email has been verified. You can now sign in.
+          </div>
+        )}
 
         {data && !data.success && (
           <div className="text-center text-destructive">{data.message}</div>

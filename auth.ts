@@ -42,6 +42,10 @@ export const config = {
 
           // If password is correct, return user
           if (isMatch) {
+            if (!user.emailVerified) {
+              throw new Error("EmailNotVerified"); // throw new Error("EmailNotVerified") or return null;
+            }
+
             return {
               id: user.id.toString(),
               name: user.name,

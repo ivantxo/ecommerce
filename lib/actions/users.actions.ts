@@ -15,9 +15,10 @@ import { formatError } from "../utils";
 import { ShippingAddress } from "@/types";
 import { z } from "zod";
 import { PAGE_SIZE } from "../constants";
-import { _success } from "zod/v4/core";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
+import { sendEmailVerification } from "@/email/email-on-signup";
+import { randomBytes } from "crypto";
 
 // Sign in the user with credentials
 export async function signInWithCredentials(
@@ -38,6 +39,15 @@ export async function signInWithCredentials(
       throw error;
     }
 
+    // Check if the error is a CallbackRouteError with EmailNotVerified cause
+    const err = error as any;
+    if (err?.cause?.err?.message === "EmailNotVerified") {
+      return {
+        success: false,
+        message: "You need to verify your account first",
+      };
+    }
+
     return { success: false, message: "Invalid email or password" };
   }
 }
@@ -45,6 +55,42 @@ export async function signInWithCredentials(
 // Sign user out
 export async function signOutUser() {
   await signOut();
+}
+
+// Email on signup
+export async function emailOnSignup(prevState: unknown, formData: FormData) {
+  try {
+    const user = signUpFormSchema.parse({
+      name: formData.get("name"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+      confirmPassword: formData.get("confirmPassword"),
+    });
+
+    const plainPassword = user.password;
+    user.password = hashSync(user.password, 10);
+
+    // Or for alphanumeric (more secure):
+    const verificationCode = randomBytes(3).toString("hex").toUpperCase();
+
+    await prisma.user.create({
+      data: {
+        name: user.name,
+        email: user.email,
+        password: user.password,
+        verificationCode,
+      },
+    });
+
+    const email = formData.get("email") as string;
+    if (!email) {
+      return { success: false, message: "Email is required" };
+    }
+    await sendEmailVerification(email, verificationCode);
+    return { success: true, message: "Confirmation email sent" };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
 }
 
 // Sign up user

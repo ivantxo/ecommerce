@@ -7,11 +7,11 @@ import { signUpDefaultsValues } from "@/lib/constants";
 import Link from "next/link";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { signUpUser } from "@/lib/actions/users.actions";
+import { emailOnSignup, signUpUser } from "@/lib/actions/users.actions";
 import { useSearchParams } from "next/navigation";
 
 const SignUpForm = () => {
-  const [data, action] = useActionState(signUpUser, {
+  const [data, action] = useActionState(emailOnSignup, {
     success: false,
     message: "",
   });
@@ -28,6 +28,19 @@ const SignUpForm = () => {
       </Button>
     );
   };
+
+  if (data.success) {
+    return (
+      <div className="space-y-4 text-center">
+        <div className="text-lg font-semibold text-green-600">
+          Account created successfully!
+        </div>
+        <p className="text-muted-foreground">
+          We have sent you an email, please verify your account to login.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form action={action}>
