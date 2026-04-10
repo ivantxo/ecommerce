@@ -25,6 +25,8 @@ import { UploadButton } from "@/lib/uploadthing";
 import { Card, CardContent } from "../ui/card";
 import Image from "next/image";
 import { Checkbox } from "../ui/checkbox";
+import { ColorPicker, useColor } from "react-color-palette";
+import "react-color-palette/css";
 
 const ProductForm = ({
   type,
@@ -95,6 +97,34 @@ const ProductForm = ({
   const images = form.watch("images");
   const isFeatured = form.watch("isFeatured");
   const banner = form.watch("banner");
+  const colours = form.watch("colours");
+
+  const [color, setColor] = useColor(
+    colours && colours.length > 0 ? colours[0] : "#535fb0",
+  );
+
+  const handleColorChange = (newColor: any) => {
+    setColor(newColor);
+  };
+
+  const handleAddColor = () => {
+    const hexColor = color.hex;
+    if (!hexColor || (colours && colours.includes(hexColor))) {
+      toast({
+        variant: "destructive",
+        description: "Color already added or invalid",
+      });
+      return;
+    }
+    form.setValue("colours", [...(colours || []), hexColor]);
+  };
+
+  const handleRemoveColor = (colorToRemove: string) => {
+    form.setValue(
+      "colours",
+      (colours || []).filter((c: string) => c !== colorToRemove),
+    );
+  };
 
   return (
     <Form {...form}>
@@ -361,6 +391,75 @@ const ProductForm = ({
                   />
                 </FormControl>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="flex flex-col gap-5">
+          {/* colour */}
+          <FormField
+            control={form.control}
+            name="colours"
+            render={() => (
+              <FormItem className="w-full">
+                <FormLabel>Colours</FormLabel>
+                <div className="flex flex-col md:flex-row gap-5 items-start">
+                  <div className="flex-1">
+                    <ColorPicker
+                      color={color}
+                      onChange={handleColorChange}
+                      hideAlpha={true}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex gap-2 mt-8">
+                      <Input
+                        type="text"
+                        placeholder="Selected color (hex)"
+                        value={color.hex}
+                        readOnly
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleAddColor}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                      >
+                        Add
+                      </Button>
+                    </div>
+
+                    {/* Colour Swatches List */}
+                    {colours && colours.length > 0 && (
+                      <div className="mt-6">
+                        <h4 className="text-sm font-medium mb-3">
+                          Added Colours:
+                        </h4>
+                        <div className="grid grid-cols-3 gap-3">
+                          {colours.map((col: string, index: number) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-2 rounded-lg border border-gray-300 p-2"
+                            >
+                              <div
+                                className="w-8 h-8 rounded border border-gray-400 cursor-pointer"
+                                style={{ backgroundColor: col }}
+                                title={col}
+                              />
+                              <span className="text-sm font-mono">{col}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveColor(col)}
+                                className="ml-1 text-red-500 hover:text-red-700 font-semibold text-lg px-2 py-0 leading-none"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </FormItem>
             )}
           />
