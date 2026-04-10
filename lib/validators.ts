@@ -21,6 +21,7 @@ export const insertProductSchema = z.object({
   isFeatured: z.boolean(),
   banner: z.string().nullable(),
   price: currency,
+  colours: z.array(z.string()).min(1, "Product must have at least one colour"),
 });
 
 // Schema for updating products
