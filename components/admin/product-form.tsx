@@ -28,6 +28,8 @@ import { Checkbox } from "../ui/checkbox";
 import { ColorPicker, useColor } from "react-color-palette";
 import "react-color-palette/css";
 
+const AVAILABLE_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+
 const ProductForm = ({
   type,
   product,
@@ -460,6 +462,63 @@ const ProductForm = ({
                     )}
                   </div>
                 </div>
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="flex flex-col gap-5">
+          {/* sizes */}
+          <FormField
+            control={form.control}
+            name="sizes"
+            render={() => (
+              <FormItem>
+                <div className="mb-4">
+                  <FormLabel className="text-base">Product Sizes</FormLabel>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {AVAILABLE_SIZES.map((size) => (
+                    <FormField
+                      key={size}
+                      control={form.control}
+                      name="sizes"
+                      render={({ field }) => {
+                        return (
+                          <FormItem
+                            key={size}
+                            className="flex flex-row items-start space-x-3 space-y-0 border p-2 rounded-md"
+                          >
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes(size)}
+                                onCheckedChange={(checked) => {
+                                  // Ensure we always have an array to work with
+                                  const safeValue = field.value ?? [];
+
+                                  if (checked) {
+                                    // Add the size if it's checked
+                                    field.onChange([...safeValue, size]);
+                                  } else {
+                                    // Remove the size if it's unchecked
+                                    field.onChange(
+                                      safeValue.filter(
+                                        (value: string) => value !== size,
+                                      ),
+                                    );
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                            <FormLabel className="font-normal cursor-pointer">
+                              {size}
+                            </FormLabel>
+                          </FormItem>
+                        );
+                      }}
+                    />
+                  ))}
+                </div>
+                <FormMessage />
               </FormItem>
             )}
           />
