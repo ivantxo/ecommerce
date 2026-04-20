@@ -60,6 +60,11 @@ export const cartItemSchema = z.object({
   image: z.string().min(1, "Image is required"),
   price: currency,
   colour: z.string().min(1, "Colour is required"),
+  sizes: z
+    .record(z.string(), z.number().int().nonnegative())
+    .refine((obj) => Object.keys(obj).length > 0, {
+      message: "At least one size must be selected",
+    }),
 });
 
 export const insertCartSchema = z.object({
