@@ -113,7 +113,20 @@ export default function PurchaseReceiptEmail({ order }: { order: Order }) {
                     />
                   </Column>
                   <Column className="align-top">
-                    {item.name} x {item.qty}
+                    <div>
+                      <div className="font-medium">{item.name} x {item.qty}</div>
+                      {item.colour && (
+                        <div className="text-sm text-gray-600">Color: {item.colour}</div>
+                      )}
+                      {item.sizes && Object.keys(item.sizes).length > 0 && (
+                        <div className="text-sm text-gray-600">
+                          Sizes: {Object.entries(item.sizes as Record<string, number>)
+                            .filter(([_, qty]) => qty > 0)
+                            .map(([size, qty]) => `${size}:${qty}`)
+                            .join(', ')}
+                        </div>
+                      )}
+                    </div>
                   </Column>
                   <Column align="right" className="align-top">
                     {formatCurrency(item.price)}
