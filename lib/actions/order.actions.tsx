@@ -7,7 +7,7 @@ import { getMyCart } from "./cart.actions";
 import { getUserById } from "./users.actions";
 import { insertOrderSchema } from "../validators";
 import { prisma } from "@/db/prisma";
-import { CartItem, PaymentResult, ShippingAddress } from "@/types";
+import { CartItem, Order, PaymentResult, ShippingAddress } from "@/types";
 import { paypal } from "../paypal";
 import { revalidatePath } from "next/cache";
 import { PAGE_SIZE } from "../constants";
@@ -105,7 +105,7 @@ export async function createOrder() {
 }
 
 // Get order by ID
-export async function getOrderById(orderId: string) {
+export async function getOrderById(orderId: string): Promise<Order | null> {
   const data = await prisma.order.findFirst({
     where: {
       id: orderId,
@@ -116,7 +116,7 @@ export async function getOrderById(orderId: string) {
     },
   });
 
-  return convertToPlainObject(data);
+  return convertToPlainObject(data) as Order | null;
 }
 
 // Create a new paypal order
@@ -264,13 +264,13 @@ export async function updateOrderToPaid({
 
   if (!updatedOrder) throw new Error("Order not found after update");
 
-  sendPurchaseReceipt({
-    order: {
-      ...updatedOrder,
-      shippingAddress: updatedOrder.shippingAddress as ShippingAddress,
-      paymentResult: updatedOrder.paymentResult as PaymentResult,
-    },
-  });
+  const typedOrder = {
+    ...updatedOrder,
+    shippingAddress: updatedOrder.shippingAddress as ShippingAddress,
+    paymentResult: updatedOrder.paymentResult as PaymentResult,
+  } as Order;
+
+  sendPurchaseReceipt({ order: typedOrder });
 }
 
 // Get user's orders
@@ -285,15 +285,17 @@ export async function getMyOrders({
 
   if (!session) throw new Error("User is not authorised");
 
+  const userId = session.user.id;
+
   const data = await prisma.order.findMany({
-    where: { userId: session?.user?.id! },
+    where: { userId },
     orderBy: { createdAt: "desc" },
     take: limit,
     skip: (page - 1) * limit,
   });
 
   const dataCount = await prisma.order.count({
-    where: { userId: session?.user?.id! },
+    where: { userId },
   });
 
   return {
@@ -301,11 +303,6 @@ export async function getMyOrders({
     totalPages: Math.ceil(dataCount / limit),
   };
 }
-
-type SalesDataType = {
-  month: string;
-  totalSales: number;
-}[];
 
 // Get sales data and order summary
 export async function getOrderSummary() {
