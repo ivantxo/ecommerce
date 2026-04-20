@@ -135,6 +135,7 @@ model OrderItem {
   slug            String
   image           String
   colour          String    @default("")
+  sizes           Json      @default("{}")
 
   order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)

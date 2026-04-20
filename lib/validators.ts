@@ -120,6 +120,7 @@ export const insertOrderItemSchema = z.object({
   price: currency,
   qty: z.number(),
   colour: z.string(),
+  sizes: z.record(z.string(), z.number().int().nonnegative()).default({}),
 });
 
 export const paymentResultSchema = z.object({
