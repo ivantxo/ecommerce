@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Product } from "@/types";
 import { Loader } from "lucide-react";
 import { getMyCart } from "@/lib/actions/cart.actions";
@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import AddToCart from "./add-to-cart";
 import ReviewList from "@/app/(root)/product/[slug]/review-list";
 import { Cart } from "@/types";
+import SizeQuantitySelector from "./product-size-selector";
 
 interface ProductClientProps {
   slug: string;
@@ -24,11 +25,28 @@ const ProductClient = ({ slug, userId, product }: ProductClientProps) => {
   const [loading, setLoading] = useState(true);
   const [selectedColour, setSelectedColour] = useState("");
   const [cart, setCart] = useState<Cart | undefined>(undefined);
+  const [selectedQtys, setSelectedQtys] = useState<Record<string, number>>({});
+
+  // Calculate total quantity for the Add to Cart button
+  const totalQty = Object.values(selectedQtys).reduce(
+    (acc, curr) => acc + curr,
+    0,
+  );
+
+  // 1. Calculate total items across all sizes
+  const totalItems = useMemo(() => {
+    return Object.values(selectedQtys).reduce((acc, qty) => acc + qty, 0);
+  }, [selectedQtys]);
+
+  // 2. Calculate the dynamic total price
+  // We use useMemo so this only recalculates when totalItems or price changes
+  const dynamicPrice = useMemo(() => {
+    const unitPrice = Number(product.price);
+    return (unitPrice * totalItems).toFixed(2);
+  }, [product.price, totalItems]);
 
   useEffect(() => {
     const fetchProduct = async () => {
-      console.log("1. Client received slug from props:", slug);
-
       try {
         setLoading(true);
         const cartData = await getMyCart();
@@ -77,9 +95,16 @@ const ProductClient = ({ slug, userId, product }: ProductClientProps) => {
                 onColourChange={setSelectedColour}
               />
 
+              {product.sizes && product.sizes.length > 0 && (
+                <SizeQuantitySelector
+                  availableSizes={product.sizes}
+                  onQtyChange={setSelectedQtys}
+                />
+              )}
+
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <ProductPrice
-                  value={Number(product.price)}
+                  value={Number(dynamicPrice)}
                   className="w-24 rounded-full bg-green-100 text-green-700 px-5 py-2"
                 />
               </div>
@@ -96,7 +121,7 @@ const ProductClient = ({ slug, userId, product }: ProductClientProps) => {
                 <div className="mb-2 flex justify-between">
                   <div>Price</div>
                   <div>
-                    <ProductPrice value={Number(product.price)} />
+                    <ProductPrice value={Number(dynamicPrice)} />
                   </div>
                 </div>
                 <div className="mb-2 flex justify-between">
@@ -116,9 +141,10 @@ const ProductClient = ({ slug, userId, product }: ProductClientProps) => {
                         name: product.name,
                         slug: product.slug,
                         price: product.price,
-                        qty: 1,
+                        qty: totalQty,
                         image: product.images![0],
                         colour: selectedColour,
+                        sizes: selectedQtys,
                       }}
                     />
                   </div>
