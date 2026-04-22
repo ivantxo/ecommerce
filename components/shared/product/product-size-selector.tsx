@@ -7,14 +7,18 @@ import { Label } from "@/components/ui/label";
 interface SizeQuantitySelectorProps {
   availableSizes: string[]; // This comes from product.sizes (e.g., ["S", "M"])
   onQtyChange: (quantities: Record<string, number>) => void;
+  selectedSizes?: Record<string, number>; // Optional prop to pre-populate quantities
 }
 
 const SizeQuantitySelector = ({
   availableSizes,
   onQtyChange,
+  selectedSizes,
 }: SizeQuantitySelectorProps) => {
   // Initialize state with 0 for all available sizes
-  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [quantities, setQuantities] = useState<Record<string, number>>(
+    selectedSizes || {},
+  );
 
   const handleInputChange = (size: string, value: string) => {
     const numValue = parseInt(value);
