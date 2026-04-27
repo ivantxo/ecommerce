@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { deleteOrder, getAllOrders } from "@/lib/actions/order.actions";
 import { formatCurrency, formatDateTime, formatID } from "@/lib/utils";
+import { Check } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 
@@ -57,6 +58,7 @@ const AdminOrdersPage = async (props: {
               <TableHead>DATE</TableHead>
               <TableHead>BUYER</TableHead>
               <TableHead>TOTAL</TableHead>
+              <TableHead>DESIGN</TableHead>
               <TableHead>PAID</TableHead>
               <TableHead>DELIVERED</TableHead>
               <TableHead>ACTIONS</TableHead>
@@ -71,6 +73,13 @@ const AdminOrdersPage = async (props: {
                 </TableCell>
                 <TableCell>{order.user.name}</TableCell>
                 <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
+                <TableCell>
+                  {order.orderitems.some((item) => item.customerImage) ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <span className="text-gray-500 text-sm">Not provided</span>
+                  )}
+                </TableCell>
                 <TableCell>
                   {order.isPaid && order.paidAt
                     ? formatDateTime(order.paidAt).dateTime
