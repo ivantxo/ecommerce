@@ -65,6 +65,7 @@ export const cartItemSchema = z.object({
     .refine((obj) => Object.keys(obj).length > 0, {
       message: "At least one size must be selected",
     }),
+  customerImage: z.string().nullable(),
 });
 
 export const insertCartSchema = z.object({
@@ -121,6 +122,7 @@ export const insertOrderItemSchema = z.object({
   qty: z.number(),
   colour: z.string(),
   sizes: z.record(z.string(), z.number().int().nonnegative()).default({}),
+  customerImage: z.string().nullable(),
 });
 
 export const paymentResultSchema = z.object({

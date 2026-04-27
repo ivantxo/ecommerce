@@ -14,6 +14,9 @@ import AddToCart from "./add-to-cart";
 import ReviewList from "@/app/(root)/product/[slug]/review-list";
 import { Cart } from "@/types";
 import SizeQuantitySelector from "./product-size-selector";
+import { useToast } from "@/hooks/use-toast";
+import { UploadButton } from "@/lib/uploadthing";
+import Image from "next/image";
 
 interface ProductClientProps {
   slug: string;
@@ -26,6 +29,8 @@ const ProductClient = ({ slug, userId, product }: ProductClientProps) => {
   const [selectedColour, setSelectedColour] = useState("");
   const [cart, setCart] = useState<Cart | undefined>(undefined);
   const [selectedQtys, setSelectedQtys] = useState<Record<string, number>>({});
+  const [customerImage, setCustomerImage] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Calculate total quantity for the Add to Cart button
   const totalQty = Object.values(selectedQtys).reduce(
@@ -102,6 +107,52 @@ const ProductClient = ({ slug, userId, product }: ProductClientProps) => {
                 />
               )}
 
+              {/* Customer Image Upload - Only for authenticated users */}
+              {userId && (
+                <div>
+                  <label className="text-sm font-semibold">
+                    Upload your own design (optional)
+                  </label>
+                  <Card className="mt-2">
+                    <CardContent className="space-y-2 mt-2 min-h-32 flex flex-col items-center justify-center">
+                      {customerImage ? (
+                        <div className="relative">
+                          <Image
+                            src={customerImage}
+                            alt="Customer upload"
+                            className="w-32 h-32 object-cover object-center rounded-sm"
+                            width={150}
+                            height={150}
+                          />
+                          <button
+                            onClick={() => setCustomerImage(null)}
+                            className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ) : (
+                        <UploadButton
+                          endpoint="imageUploader"
+                          onClientUploadComplete={(res: { url: string }[]) => {
+                            setCustomerImage(res[0].url);
+                            toast({
+                              description: "Image uploaded successfully",
+                            });
+                          }}
+                          onUploadError={(error: Error) => {
+                            toast({
+                              variant: "destructive",
+                              description: `ERROR! ${error.message}`,
+                            });
+                          }}
+                        />
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <ProductPrice
                   value={Number(dynamicPrice)}
@@ -145,6 +196,7 @@ const ProductClient = ({ slug, userId, product }: ProductClientProps) => {
                         image: product.images![0],
                         colour: selectedColour,
                         sizes: selectedQtys,
+                        customerImage: customerImage,
                       }}
                     />
                   </div>
