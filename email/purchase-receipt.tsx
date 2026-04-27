@@ -44,6 +44,7 @@ PurchaseReceiptEmail.PreviewProps = {
       price: x.price.toString(),
       colour: "#000000",
       sizes: { S: 10, M: 20, L: 30 },
+      customerImage: "",
     })),
     isDelivered: true,
     deliveredAt: new Date(),
