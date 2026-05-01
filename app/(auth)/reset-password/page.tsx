@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import {
   Card,
   CardContent,
@@ -9,26 +10,30 @@ import { APP_NAME } from "@/lib/constants";
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import CredentialsSignInForm from "./credentials-signin-form";
-import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import ResetPasswordForm from "./reset-password-form";
 
 export const metadata: Metadata = {
-  title: "Sign In",
+  title: "Reset your password | " + APP_NAME,
+  description: "Create a new password for your account",
 };
-const SignInPage = async (props: {
+
+const ResetPasswordPage = async (props: {
   searchParams: Promise<{
-    callbackUrl: string;
+    token?: string;
   }>;
 }) => {
-  const { callbackUrl } = await props.searchParams;
+  const { token } = await props.searchParams;
 
   const session = await auth();
 
   if (session) {
-    return redirect(callbackUrl || "/");
+    return redirect("/");
   }
 
+  if (!token) {
+    return redirect("/forgot-password");
+  }
   return (
     <div className="w-full max-w-md mx-auto">
       <Card>
@@ -39,20 +44,20 @@ const SignInPage = async (props: {
               width={100}
               height={100}
               alt={`${APP_NAME} logo`}
-              priority={true}
+              priority
             />
           </Link>
-          <CardTitle className="text-center">Sign In</CardTitle>
+          <CardTitle className="text-center">Reset your password</CardTitle>
           <CardDescription className="text-center">
-            Sign in to your account
+            Enter your new password below to reset your account password.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {<CredentialsSignInForm />}
+          <ResetPasswordForm token={token} />
         </CardContent>
       </Card>
     </div>
   );
 };
 
-export default SignInPage;
+export default ResetPasswordPage;

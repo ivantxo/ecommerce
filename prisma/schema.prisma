@@ -31,23 +31,24 @@ model Product {
 }
 
 model User {
-  id                String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name              String      @default("NO_NAME")
-  email             String      @unique(map: "user_email_idx")
-  emailVerified     DateTime?   @db.Timestamp(6)
-  image             String?
-  password          String?
-  role              String      @default("user")
-  address           Json?       @db.Json
-  paymentMethod     String?
-  verificationCode  String?
-  createdAt         DateTime    @default(now()) @db.Timestamp(6)
-  updatedAt         DateTime    @updatedAt
-  account           Account[]
-  session           Session[]
-  Cart              Cart[]
-  Order             Order[]
-  Review            Review[]
+  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                String      @default("NO_NAME")
+  email               String      @unique(map: "user_email_idx")
+  emailVerified       DateTime?   @db.Timestamp(6)
+  image               String?
+  password            String?
+  role                String      @default("user")
+  address             Json?       @db.Json
+  paymentMethod       String?
+  verificationCode    String?
+  createdAt           DateTime    @default(now()) @db.Timestamp(6)
+  updatedAt           DateTime    @updatedAt
+  account             Account[]
+  session             Session[]
+  Cart                Cart[]
+  Order               Order[]
+  Review              Review[]
+  PasswordResetToken  PasswordResetToken[]
 }
 
 model Account {
@@ -156,4 +157,14 @@ model Review {
 
   product             Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  token     String    @unique
+  userId    String    @db.Uuid
+  expiresAt DateTime  @db.Timestamp(6)
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

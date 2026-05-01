@@ -9,14 +9,16 @@ import { APP_NAME } from "@/lib/constants";
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import CredentialsSignInForm from "./credentials-signin-form";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import ForgotPasswordForm from "./forgot-password-form";
 
 export const metadata: Metadata = {
-  title: "Sign In",
+  title: "Forgot your password? | " + APP_NAME,
+  description: "Reset your password by entering your email address",
 };
-const SignInPage = async (props: {
+
+const ForgotPasswordPage = async (props: {
   searchParams: Promise<{
     callbackUrl: string;
   }>;
@@ -42,17 +44,18 @@ const SignInPage = async (props: {
               priority={true}
             />
           </Link>
-          <CardTitle className="text-center">Sign In</CardTitle>
+          <CardTitle className="text-center">Forgot your password?</CardTitle>
           <CardDescription className="text-center">
-            Sign in to your account
+            Enter your email address and we&apos;ll send you a link to reset
+            your password.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {<CredentialsSignInForm />}
+          {<ForgotPasswordForm />}
         </CardContent>
       </Card>
     </div>
   );
 };
 
-export default SignInPage;
+export default ForgotPasswordPage;

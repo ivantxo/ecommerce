@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import qs from "query-string";
+import crypto from "crypto";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -144,4 +145,12 @@ export function formUrlQuery({
       skipNull: true,
     },
   );
+}
+
+export function generateToken(userId: string): string {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+export function hasToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
 }
