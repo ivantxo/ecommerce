@@ -38,8 +38,8 @@ const ForgotPasswordPage = async (props: {
           <Link href="/" className="flex-center">
             <Image
               src="/images/logo.png"
-              width={100}
-              height={100}
+              width={90}
+              height={90}
               alt={`${APP_NAME} logo`}
               priority={true}
             />
