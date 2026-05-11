@@ -15,7 +15,7 @@ const calcPrice = (items: CartItem[]) => {
       items.reduce((acc, item) => acc + Number(item.price) * item.qty, 0),
     ),
     shippingPrice = round2(itemsPrice > 100 ? 0 : 10),
-    taxPrice = round2(0.15 * itemsPrice),
+    taxPrice = round2(0.1 * itemsPrice),
     totalPrice = round2(itemsPrice + taxPrice + shippingPrice);
 
   return {
@@ -267,6 +267,46 @@ export async function removeItemFromCart(productId: string) {
     return {
       success: true,
       message: `${product.name} was removed from cart`,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: formatError(error),
+    };
+  }
+}
+
+// Update cart with shipping price (used after calculating with Australia Post)
+export async function updateCartWithShippingPrice(
+  shippingPrice: string,
+  taxPrice: string,
+  totalPrice: string,
+) {
+  try {
+    // Check for cart cookie
+    const sessionCartId = (await cookies()).get("sessionCartId")?.value;
+    if (!sessionCartId) throw new Error("Cart session not found");
+
+    // Get user's cart
+    const cart = await getMyCart();
+    if (!cart) throw new Error("Cart not found");
+
+    // Update cart in database with new shipping, tax, and total prices
+    await prisma.cart.update({
+      where: { id: cart.id },
+      data: {
+        shippingPrice: shippingPrice,
+        taxPrice: taxPrice,
+        totalPrice: totalPrice,
+      },
+    });
+
+    revalidatePath("/shipping-address");
+    revalidatePath("/place-order");
+
+    return {
+      success: true,
+      message: "Cart updated with shipping price",
     };
   } catch (error) {
     return {

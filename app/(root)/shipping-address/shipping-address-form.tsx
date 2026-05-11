@@ -21,6 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader } from "lucide-react";
 import { updateUserAddress } from "@/lib/actions/users.actions";
+import { calculateShippingPrice } from "@/lib/actions/order.actions";
+import { updateCartWithShippingPrice } from "@/lib/actions/cart.actions";
 
 const ShippingAddressForm = ({ address }: { address: ShippingAddress }) => {
   const router = useRouter();
@@ -37,16 +39,52 @@ const ShippingAddressForm = ({ address }: { address: ShippingAddress }) => {
     values,
   ) => {
     startTransition(async () => {
-      const res = await updateUserAddress(values);
+      // First, update user address
+      const addressRes = await updateUserAddress(values);
 
-      if (!res.success) {
+      if (!addressRes.success) {
         toast({
           variant: "destructive",
-          description: res.message,
+          description: addressRes.message,
         });
-
         return;
       }
+
+      // Then calculate shipping price using Australia Post API
+      const shippingRes = await calculateShippingPrice(values.postalCode);
+
+      if (!shippingRes.success) {
+        toast({
+          variant: "destructive",
+          description: shippingRes.message,
+        });
+        return;
+      }
+
+      // Update cart with calculated shipping price
+      if (
+        shippingRes.shippingPrice &&
+        shippingRes.taxPrice &&
+        shippingRes.totalPrice
+      ) {
+        const cartRes = await updateCartWithShippingPrice(
+          shippingRes.shippingPrice,
+          shippingRes.taxPrice,
+          shippingRes.totalPrice,
+        );
+
+        if (!cartRes.success) {
+          toast({
+            variant: "destructive",
+            description: cartRes.message,
+          });
+          return;
+        }
+      }
+
+      toast({
+        description: "Shipping address and price calculated successfully",
+      });
 
       router.push("/payment-method");
     });
@@ -57,7 +95,8 @@ const ShippingAddressForm = ({ address }: { address: ShippingAddress }) => {
       <div className="max-w-md mx-auto space-y-4">
         <h1 className="h2-bold mt-4">Shipping Address</h1>
         <p className="text-sm text-muted-foreground">
-          Please enter an address to ship to.
+          Please enter an address to ship to. We'll calculate the shipping price
+          based on Australia Post rates.
         </p>
         <Form {...form}>
           <form

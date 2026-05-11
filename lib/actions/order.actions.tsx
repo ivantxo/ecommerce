@@ -1,7 +1,7 @@
 "use server";
 
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { convertToPlainObject, formatError } from "../utils";
+import { convertToPlainObject, formatError, round2 } from "../utils";
 import { auth } from "@/auth";
 import { getMyCart } from "./cart.actions";
 import { getUserById } from "./users.actions";
@@ -13,6 +13,7 @@ import { revalidatePath } from "next/cache";
 import { PAGE_SIZE } from "../constants";
 import { Prisma } from "@prisma/client";
 import { sendPurchaseReceipt } from "@/email";
+import { calculateAuspostDeliveryPrice } from "../auspost";
 
 export async function createOrder() {
   try {
@@ -450,5 +451,63 @@ export async function deliverOrder(orderId: string) {
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
+  }
+}
+
+// Calculate shipping price using Australia Post API
+export async function calculateShippingPrice(toPostcode: string) {
+  try {
+    // Get current user's cart
+    const cart = await getMyCart();
+    if (!cart || cart.items.length === 0) {
+      throw new Error("Cart is empty");
+    }
+
+    // Hardcoded parcel dimensions and weight for orders
+    const parcelLength = 15; // cm
+    const parcelWidth = 10; // cm
+    const parcelHeight = 8; // cm
+    const parcelWeight = 0.5; // kg
+
+    // Get the sender's postcode (you can hardcode this or store it in settings)
+    // For now, using a default Sydney postcode - update this to your business postcode
+    const fromPostcode = process.env.AUSPOST_FROM_POSTCODE || "2000";
+
+    // Calculate shipping price using Australia Post API
+    const shippingPrice = await calculateAuspostDeliveryPrice({
+      fromPostcode,
+      toPostcode,
+      length: parcelLength,
+      width: parcelWidth,
+      height: parcelHeight,
+      weight: parcelWeight,
+      serviceCode: "AUS_PARCEL_REGULAR",
+    });
+
+    if (shippingPrice === null) {
+      // Fallback to default shipping if API fails
+      return {
+        success: true,
+        shippingPrice: "10.00",
+        message: "Using default shipping. API unavailable.",
+      };
+    }
+
+    const taxPrice = round2(0.1 * Number(cart.itemsPrice));
+    const totalPrice = round2(
+      Number(cart.itemsPrice) + taxPrice + shippingPrice,
+    );
+
+    return {
+      success: true,
+      shippingPrice: shippingPrice.toFixed(2),
+      taxPrice: taxPrice.toFixed(2),
+      totalPrice: totalPrice.toFixed(2),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: formatError(error),
+    };
   }
 }

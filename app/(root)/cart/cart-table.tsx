@@ -150,7 +150,8 @@ const CartTable = ({ cart }: { cart?: Cart }) => {
                       </Button>
                     </TableCell>
                     <TableCell className="text-right">
-                      {formatCurrency(cart.itemsPrice)}
+                      {formatCurrency(item.price)} × {item.qty} ={" "}
+                      {formatCurrency(Number(item.price) * item.qty)}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -44,13 +44,13 @@ export function formatError(error: any) {
 
 // Round number 2 to 2 decimal places
 export function round2(value: number | string) {
-  if (typeof value === "number") {
-    return (Math.round(value + Number.EPSILON) * 100) / 100;
-  } else if (typeof value === "string") {
-    return (Math.round(Number(value) + Number.EPSILON) * 100) / 100;
-  } else {
-    throw new Error("Value is not a number or string");
+  const num = typeof value === "number" ? value : Number(value);
+
+  if (isNaN(num)) {
+    throw new Error("Value is not a valid number");
   }
+
+  return Math.round((num + Number.EPSILON) * 100) / 100;
 }
 
 const CURRENCY_FORMATTER = new Intl.NumberFormat("en-US", {
